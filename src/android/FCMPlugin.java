@@ -17,13 +17,13 @@ import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.Map;
 
+
 public class FCMPlugin extends CordovaPlugin {
  
 	private static final String TAG = "FCMPlugin";
-	
+	public static Boolean inBackground = false;
 	public static CordovaWebView gWebView;
 	public static String notificationCallBack = "FCMPlugin.onNotificationReceived";
-	public static String tokenRefreshCallBack = "FCMPlugin.onTokenRefreshReceived";
 	public static Boolean notificationCallBackReady = false;
 	public static Map<String, Object> lastPush = null;
 	 
@@ -36,6 +36,39 @@ public class FCMPlugin extends CordovaPlugin {
 		FirebaseMessaging.getInstance().subscribeToTopic("android");
 		FirebaseMessaging.getInstance().subscribeToTopic("all");
 	}
+	
+	public static void CallJS(String js)
+	{
+		gWebView.sendJavascript("javascript:"+js);
+	}
+	
+	@Override
+    public void onDestroy() {
+        super.onDestroy();
+	gWebView = null;
+	    FCMPlugin.inBackground = true;
+    }
+	@Override
+    public void onPause(boolean multitasking) {
+        super.onPause(multitasking);
+        FCMPlugin.inBackground = true;
+    }
+
+    /**
+     * Called when the activity will start interacting with the user.
+     *
+     * @param multitasking Flag indicating if multitasking is turned on for app.
+     */
+    @Override
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+        FCMPlugin.inBackground = false;
+    }
+	
+	public static boolean isActive()
+	    {
+		return gWebView != null;
+	    }
 	 
 	public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
@@ -143,21 +176,5 @@ public class FCMPlugin extends CordovaPlugin {
 			Log.d(TAG, "\tERROR sendPushToView. SAVED NOTIFICATION: " + e.getMessage());
 			lastPush = payload;
 		}
-	}
-
-	public static void sendTokenRefresh(String token) {
-		Log.d(TAG, "==> FCMPlugin sendRefreshToken");
-	  try {
-			String callBack = "javascript:" + tokenRefreshCallBack + "('" + token + "')";
-			gWebView.sendJavascript(callBack);
-		} catch (Exception e) {
-			Log.d(TAG, "\tERROR sendRefreshToken: " + e.getMessage());
-		}
-	}
-  
-  @Override
-	public void onDestroy() {
-		gWebView = null;
-		notificationCallBackReady = false;
 	}
 } 
