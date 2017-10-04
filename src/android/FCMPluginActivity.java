@@ -7,12 +7,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.content.ComponentName;
 import android.util.Log;
-
 import java.util.Map;
 import java.util.HashMap;
+
+import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class FCMPluginActivity extends Activity {
     private static String TAG = "FCMPlugin";
@@ -42,9 +48,34 @@ public class FCMPluginActivity extends Activity {
 		FCMPlugin.sendPushPayload(data);
 
         finish();
-
-        forceMainActivityReload();
+	if (!FCMPlugin.isActive()) {
+		forceMainActivityReload();
+	}
+	    /*
+	if (!isForeground(getApplicationContext().getPackageName())) {
+	    forceMainActivityReload();
+	}*/
     }
+	public boolean isForeground(String myPackage) {
+	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+	    List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager.getRunningTasks(1); 
+	    ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
+	    return componentInfo.getPackageName().equals(myPackage);
+	}
+	
+	public boolean isMainActivityRunning(String packageName) {
+	    ActivityManager activityManager = (ActivityManager) getSystemService (Context.ACTIVITY_SERVICE);
+	    List<RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(Integer.MAX_VALUE); 
+		
+	    for (int i = 0; i < tasksInfo.size(); i++) {
+		if (tasksInfo.get(i).baseActivity.getPackageName().toString().equals(packageName))
+		{
+			return true;
+		}
+		    
+	    }
+	    return false;
+	} 
 
     private void forceMainActivityReload() {
         PackageManager pm = getPackageManager();
