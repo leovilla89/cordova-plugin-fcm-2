@@ -14,6 +14,10 @@ import java.util.HashMap;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
+
+import java.util.List;
 /**
  * Created by Felipe Echanique on 08/06/2016.
  */
@@ -34,12 +38,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
         Log.d(TAG, "==> MyFirebaseMessagingService onMessageReceived");
-		
+		/*
 		if( remoteMessage.getNotification() != null){
 			Log.d(TAG, "\tNotification Title: " + remoteMessage.getNotification().getTitle());
 			Log.d(TAG, "\tNotification Message: " + remoteMessage.getNotification().getBody());
 		}
-		
+		*/
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("wasTapped", false);
 		for (String key : remoteMessage.getData().keySet()) {
@@ -48,10 +52,31 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 				data.put(key, value);
         }
 		
-		Log.d(TAG, "\tNotification Data: " + data.toString());
-        FCMPlugin.sendPushPayload( data );
-        //sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody(), remoteMessage.getData());
+	Log.d(TAG, "\tNotification Data: " + data.toString());
+	if(applicationInForeground() && FCMPlugin.isActive() && !FCMPlugin.inBackground)
+	{
+	    FCMPlugin.sendPushPayload( data );
+	}
+	else
+	{
+	    sendNotification(remoteMessage.getData().get("title").toString(), remoteMessage.getData().get("body").toString(), data);
+	}
+	    
+	    //sendNotification(remoteMessage.getData().get("title").toString(), remoteMessage.getData().get("body").toString(), data);
     }
+	
+	private boolean applicationInForeground() {
+	    ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	    List<ActivityManager.RunningAppProcessInfo> services = activityManager.getRunningAppProcesses();
+	    boolean isActivityFound = false;
+
+	    if (services.get(0).processName
+		    .equalsIgnoreCase(getPackageName())) {
+		isActivityFound = true;
+	    }
+
+	    return isActivityFound;
+	}
     // [END receive_message]
 
     /**
@@ -79,7 +104,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
+	    /*
+	String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager nMgr = (NotificationManager) getApplicationContext().getSystemService(ns);
+        nMgr.cancelAll();
+	    
+	notificationManager.cancel(0);
+	notificationManager.cancelAll();*/
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }
 }
