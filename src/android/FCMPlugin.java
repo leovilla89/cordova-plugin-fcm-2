@@ -177,4 +177,13 @@ public class FCMPlugin extends CordovaPlugin {
 			lastPush = payload;
 		}
 	}
+	public static void sendTokenRefresh(String token) {
+		Log.d(TAG, "==> FCMPlugin sendRefreshToken");
+	  try {
+			String callBack = "javascript:" + tokenRefreshCallBack + "('" + token + "')";
+			gWebView.sendJavascript(callBack);
+		} catch (Exception e) {
+			Log.d(TAG, "\tERROR sendRefreshToken: " + e.getMessage());
+		}
+	}
 } 
