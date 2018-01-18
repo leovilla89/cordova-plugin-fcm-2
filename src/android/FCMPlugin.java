@@ -24,6 +24,7 @@ public class FCMPlugin extends CordovaPlugin {
 	public static Boolean inBackground = false;
 	public static CordovaWebView gWebView;
 	public static String notificationCallBack = "FCMPlugin.onNotificationReceived";
+	public static String tokenRefreshCallBack = "FCMPlugin.onTokenRefreshReceived";
 	public static Boolean notificationCallBackReady = false;
 	public static Map<String, Object> lastPush = null;
 	 
